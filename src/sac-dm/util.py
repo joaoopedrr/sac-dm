@@ -19,6 +19,7 @@ def testingInstants( instants, average, deviation, file_tags=np.zeros(1)):
 	:return: Returns a list of tuples that contain the classification of each instant contained in <param instants>.
 		Note: To understand the values contained in the tuples, see the return of <function instantCompare>
 	"""
+	
 	average = np.array(average)
 	deviation = np.array(deviation)
 	metrics_shape = average.shape

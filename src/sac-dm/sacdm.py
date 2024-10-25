@@ -475,15 +475,15 @@ def plot_SAC_AM_DM_motor_signals():
 
 #********* Main ********
 
-file_paths = [     "../../files/hexacopter_signals/nominal_flight/NFlt01n1.csv",
-			"../../files/hexacopter_signals/failure_condition_1/FC1Flt01n1.csv",
-			"../../files/hexacopter_signals/failure_condition_2/FC2Flt01n1.csv",
-			"../../files/hexacopter_signals/failure_condition_3/FC3Flt01n1.csv" ]
+# file_paths = [     "../../files/hexacopter_signals/nominal_flight/NFlt01n1.csv",
+# 			"../../files/hexacopter_signals/failure_condition_1/FC1Flt01n1.csv",
+# 			"../../files/hexacopter_signals/failure_condition_2/FC2Flt01n1.csv",
+# 			"../../files/hexacopter_signals/failure_condition_3/FC3Flt01n1.csv" ]
 
-# file_paths = [     "../../files/hexacopter_signals/nominal_flight/NFlt04n2.csv",
-# 			"../../files/hexacopter_signals/failure_condition_1/FC1Flt04n2.csv",
-# 			"../../files/hexacopter_signals/failure_condition_2/FC2Flt04n2.csv",
-# 			"../../files/hexacopter_signals/failure_condition_3/FC3Flt04n2.csv" ]
+file_paths = [     "../../files/hexacopter_signals/nominal_flight/NFlt04n2.csv",
+			"../../files/hexacopter_signals/failure_condition_1/FC1Flt04n2.csv",
+			"../../files/hexacopter_signals/failure_condition_2/FC2Flt04n2.csv",
+			"../../files/hexacopter_signals/failure_condition_3/FC3Flt04n2.csv" ]
 
 # file_paths = [     "../../files/hexacopter_signals/nominal_flight/NFlt05n3.csv",
 # 			"../../files/hexacopter_signals/failure_condition_1/FC1Flt05n3.csv",
