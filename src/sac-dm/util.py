@@ -19,7 +19,7 @@ def testingInstants( instants, average, deviation, file_tags=np.zeros(1)):
 	:return: Returns a list of tuples that contain the classification of each instant contained in <param instants>.
 		Note: To understand the values contained in the tuples, see the return of <function instantCompare>
 	"""
-	
+
 	average = np.array(average)
 	deviation = np.array(deviation)
 	metrics_shape = average.shape
@@ -40,9 +40,10 @@ def testingInstants( instants, average, deviation, file_tags=np.zeros(1)):
 		#classification of singular points - Axis by Axis
 		for j in range(len(instants[0])):
 			aux = instantCompare(instants[i][j], average[j], deviation[j], file_tags)
+
 			#saves only classifications where there are no interpolations
-			# if(aux != (len(file_tags) + 1)):
-			aux_conclusion.append(aux)
+			if(aux != (len(file_tags) + 1)):
+				aux_conclusion.append(aux)
 			
 		#classification of all axes points
 		if(len(aux_conclusion) > 0):
@@ -208,7 +209,7 @@ def classification(sac_instants, average, deviation, window_size, file_tags):
 
 	#	checks if there is more than one value with the same and greater repetition
 	#	simple voting to classify the data
-	if(np.count_nonzero(counts == counts[np.argmax(counts)]) > 1):
+	if(np.count_nonzero(counts == counts[np.argmax(counts)]) > 1 or values[np.argmax(counts)] == len(file_tags) + 1):
 		# return len(file_tags)
 		return "inconclusivo"
 	else:
