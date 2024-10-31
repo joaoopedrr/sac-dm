@@ -1,5 +1,5 @@
 import datetime
-from models.models import SACDM, Device, Log
+from models.models import SACDM, SACDMDefault, Device, Log
 from schemas.sacdm import SACDMSchema
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -9,6 +9,26 @@ from fastapi.responses import JSONResponse
 
 from schemas.log import LogSchema
 from controllers.fault import log_verifier
+
+import sys
+import os
+sys.path.append(os.path.abspath("../sac-dm/"))
+from util import classification
+
+
+def format_data_for_classification(sac_dm_schema: List[SACDMSchema], db: Session):
+    axis_values = [[entry.x_value, entry.y_value, entry.z_value] for entry in sac_dm_schema]
+
+    x_mean = db.query(SACDMDefault.x_mean).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    y_mean = db.query(SACDMDefault.y_mean).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    z_mean = db.query(SACDMDefault.z_mean).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    means = [x_mean[0], y_mean[0], z_mean[0]]
+
+    x_standard_deviation = db.query(SACDMDefault.x_standard_deviation).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    y_standard_deviation = db.query(SACDMDefault.y_standard_deviation).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    z_standard_deviation = db.query(SACDMDefault.z_standard_deviation).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    standard_deviations = [x_standard_deviation[0], y_standard_deviation[0], z_standard_deviation[0]]
+    return axis_values, means, standard_deviations
 
 
 def create_sacdm(sac_dm_schema: List[SACDMSchema], db: Session):
@@ -26,10 +46,9 @@ def create_sacdm(sac_dm_schema: List[SACDMSchema], db: Session):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"error": "Failed to insert data to the database."}
     )
-    return log_verifier(log_schema, sac_dm_schema, db)
-    # return JSONResponse(
-    #     status_code=status.HTTP_200_OK,
-    #     content="Successfully entered data!")
+    formated_data = format_data_for_classification(sac_dm_schema, db)
+    #data_test = ([[10, 10, 10], [10, 9, 10], [10, 15, 10], [10, 10, 10]], [10, 10, 10], [3, 3, 3], 5, [0, 1, 2])
+    return classification(*formated_data,  5, [0, 1, 2])
 
 
 def get_all_sacdm(db: Session, limit: Optional[int] = None):

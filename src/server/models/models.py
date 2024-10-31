@@ -28,7 +28,9 @@ class SACDM(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     device_id = Column(Integer, ForeignKey('device.id'), nullable=True)
     vehicle_id = Column(Integer, ForeignKey('vehicle.id'), nullable=True)
-    value = Column(Float, nullable=False)
+    x_value = Column(Float, nullable=False)
+    y_value = Column(Float, nullable=False)
+    z_value = Column(Float, nullable=False)
     timestamp = Column(String, nullable=False)
     label = Column(String, nullable=True)
 
