@@ -1,5 +1,5 @@
 import datetime
-from models.models import SACDM, Device, Log
+from models.models import SACDM, SACDMDefault, Device, Log
 from schemas.sacdm import SACDMSchema
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -10,15 +10,33 @@ from fastapi.responses import JSONResponse
 from schemas.log import LogSchema
 from controllers.fault import log_verifier
 
+import sys
+import os
+sys.path.append(os.path.abspath("../sac-dm/"))
+from util import classification
+
+
+def format_data_for_classification(sac_dm_schema: List[SACDMSchema], db: Session):
+    axis_values = [[entry.x_value, entry.y_value, entry.z_value] for entry in sac_dm_schema]
+
+    x_mean = db.query(SACDMDefault.x_mean).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    y_mean = db.query(SACDMDefault.y_mean).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    z_mean = db.query(SACDMDefault.z_mean).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    #if (x_mean == None) or (y_mean == None) or (z_mean == None):
+    #    return("Mean values not found!")
+    means = [x_mean[0], y_mean[0], z_mean[0]]
+
+    x_standard_deviation = db.query(SACDMDefault.x_standard_deviation).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    y_standard_deviation = db.query(SACDMDefault.y_standard_deviation).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    z_standard_deviation = db.query(SACDMDefault.z_standard_deviation).filter(SACDMDefault.vehicle_id == sac_dm_schema[0].vehicle_id).first()
+    standard_deviations = [x_standard_deviation[0], y_standard_deviation[0], z_standard_deviation[0]]
+    return axis_values, means, standard_deviations
+
 
 def create_sacdm(sac_dm_schema: List[SACDMSchema], db: Session):
     try:
         vehicle_id_query = db.query(Device.vehicle_id).filter(Device.id == sac_dm_schema[0].device_id).first()
-        status_query = db.query(Log.status_id).filter(Log.vehicle_id == vehicle_id_query[0]).order_by(desc(Log.id)).first()
-        if status_query == None:
-            status_query = (3, )
         sac_dm_data = [SACDM(**{**sac_dm.dict(), 'vehicle_id' : vehicle_id_query[0]}) for sac_dm in sac_dm_schema]
-        log_schema = LogSchema(device_id=sac_dm_data[0].device_id, vehicle_id=sac_dm_data[0].vehicle_id, status_id=status_query[0], timestamp=sac_dm_data[0].timestamp, axis="x")
         db.add_all(sac_dm_data)
         db.commit()
     except Exception:
@@ -26,10 +44,8 @@ def create_sacdm(sac_dm_schema: List[SACDMSchema], db: Session):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"error": "Failed to insert data to the database."}
     )
-    return log_verifier(log_schema, sac_dm_schema, db)
-    # return JSONResponse(
-    #     status_code=status.HTTP_200_OK,
-    #     content="Successfully entered data!")
+    formated_data = format_data_for_classification(sac_dm_data, db)
+    return classification(*formated_data,  5, ["NF"])
 
 
 def get_all_sacdm(db: Session, limit: Optional[int] = None):
