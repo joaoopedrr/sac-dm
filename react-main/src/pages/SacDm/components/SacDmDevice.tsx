@@ -17,6 +17,8 @@ export const SacDmDevice = ({
   const loadSacDmDefault = useCallback(async () => {
     try {
       const response = await sacDmDefault.getSacDmDefault(1);
+      console.log("Response: ", response);
+      
       // TODO: Alterar para pegar o veículo selecionado
       setsacDmMean(response);
     } catch (error) {
@@ -66,7 +68,8 @@ export const SacDmDevice = ({
   const seriesChart = [
     {
       name: "Valor",
-      data: sacDm.map((item) => parseFloat(item.value.toFixed(8))),
+      data: sacDm.map((item) => parseFloat(item.x_value.toFixed(8))
+    ),
     },
     {
       name: "Média",
