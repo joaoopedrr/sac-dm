@@ -32,6 +32,7 @@ export const Vehicle = () => {
         ...item,
         timestamp: formatTime(item.timestamp),
       }));
+      console.log("index vehicle ",formattedResponse);
 
       setSacDm(formattedResponse);
     } catch (error) {
