@@ -209,7 +209,7 @@ def classification(sac_instants, average, deviation, window_size, file_tags):
 
 	#	checks if there is more than one value with the same and greater repetition
 	#	simple voting to classify the data
-	if(np.count_nonzero(counts == counts[np.argmax(counts)]) > 1 or values[np.argmax(counts)] == len(file_tags) + 1):
+	if(np.count_nonzero(counts == counts[np.argmax(counts)]) > 1 or values[np.argmax(counts)] == len(file_tags)):
 		# return len(file_tags)
 		return "inconclusivo"
 	else:
