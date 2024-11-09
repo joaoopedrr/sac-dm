@@ -179,12 +179,14 @@ def search_optimal(files, file_columns, file_paths, file_tags):
 	sliding_list_result_nc = []
 	title = ""
 	stop = 0
+	#Inicio 500, Fim 6000, Passos 100 - Testes para N
 	for k in range(500,6000,100):
+		#Ranges para o tamanho da janela
 		window_range = [3,5]
 		for j in range(len(window_range)):
 			print(f"Jumping: Calculating N:{k} ws:{window_range[j]}")
 			dataset = relocateN(files, file_columns,file_paths, k)
-			outputMatrixJumping = util.jumpingWindowAllAxes(dataset, file_tags, title, window_range[j], k)
+			outputMatrixJumping, _ = util.jumpingWindowAllAxes(dataset, file_tags, title, window_range[j], k)
 			outputMatrixJumping = outputMatrixJumping / 100
 			jumping_result = np.zeros(len(file_tags) + 3)
 
@@ -198,51 +200,58 @@ def search_optimal(files, file_columns, file_paths, file_tags):
 			jumping_result[len(file_tags) + 1] = window_range[j]
 			jumping_result[len(file_tags) + 2] = jump_axes_percent
 
-			if(jump_axes_percent >= 4):
+			if(jump_axes_percent >= len(file_tags)):
 				jumping_list_result_c.append(jumping_result)
 			else:
 				jumping_list_result_nc.append(jumping_result)
 
-			if(jump_axes_percent == 4):
+			if(jump_axes_percent == len(file_tags)):
 				stop += 1
 			
-		if(stop == 2):
+		if(stop == 5):
 			break
+		
+	if( len(file_tags) >= 4):
+		jumping_list_result_nc.sort(key=lambda x: x[4])
+	elif(len(file_tags) >= 2):
+		jumping_list_result_nc.sort(key=lambda x: x[1])
 
-	jumping_list_result_nc.sort(key=lambda x: x[6])
+	#Partes comentadas referente a sliding window
+	# stop = 0
+	# for k in range(500,6000,100):
+	# 	window_range = [3,5]
+	# 	for j in range(len(window_range)):
+	# 		print(f"Sliding: Calculating N:{k} ws:{window_range[j]}")
+	# 		dataset = relocateN(files, file_columns,file_paths, k)
+	# 		outputMatrixSliding, _ = util.slidingWindowAllAxes(dataset, file_tags, title, window_range[j], k)
+	# 		outputMatrixSliding = outputMatrixSliding / 100
+	# 		sliding_result = np.zeros(len(file_tags) + 3)
 
-	stop = 0
-	for k in range(500,6000,100):
-		window_range = [3,5]
-		for j in range(len(window_range)):
-			print(f"Sliding: Calculating N:{k} ws:{window_range[j]}")
-			dataset = relocateN(files, file_columns,file_paths, k)
-			outputMatrixSliding = util.slidingWindowAllAxes(dataset, file_tags, title, window_range[j], k)
-			outputMatrixSliding = outputMatrixSliding / 100
-			sliding_result = np.zeros(len(file_tags) + 3)
+	# 		sli_axes_percent = 0
+	# 		for i in range(len(file_tags)):
 
-			sli_axes_percent = 0
-			for i in range(len(file_tags)):
+	# 			sliding_result[i] = round(outputMatrixSliding[i][i],2)
+	# 			sli_axes_percent += sliding_result[i]
 
-				sliding_result[i] = round(outputMatrixSliding[i][i],2)
-				sli_axes_percent += sliding_result[i]
-
-			sliding_result[len(file_tags)] = k
-			sliding_result[len(file_tags) + 1] = window_range[j]
-			sliding_result[len(file_tags) + 2] = sli_axes_percent
+	# 		sliding_result[len(file_tags)] = k
+	# 		sliding_result[len(file_tags) + 1] = window_range[j]
+	# 		sliding_result[len(file_tags) + 2] = sli_axes_percent
 			
-			if(sli_axes_percent >= 4):
-				sliding_list_result_c.append(sliding_result)
-			else:
-				sliding_list_result_nc.append(sliding_result)
+	# 		if(sli_axes_percent >= len(file_tags)):
+	# 			sliding_list_result_c.append(sliding_result)
+	# 		else:
+	# 			sliding_list_result_nc.append(sliding_result)
 
-			if(sli_axes_percent == 4):
-				stop += 1
+	# 		if(sli_axes_percent == len(file_tags)):
+	# 			stop += 1
 			
-		if(stop == 2):
-			break
+	# 	if(stop == 2):
+	# 		break
 	
-	sliding_list_result_nc.sort(key=lambda x: x[6])
+	# if( len(file_tags) >= 4):
+	# 	sliding_list_result_nc.sort(key=lambda x: x[4])
+	# elif(len(file_tags) >= 2):
+	# 	sliding_list_result_nc.sort(key=lambda x: x[1])
 
 	print("\n\nJumping window \n")
 	for i in range(len(file_tags)):
@@ -250,7 +259,7 @@ def search_optimal(files, file_columns, file_paths, file_tags):
 	print(f"{'N':<10}", end="")
 	print(f"{'window_size':<12}",end="")
 	print(f"{'soma diagonal':<12}",)
-	
+
 	if(len(jumping_list_result_c) > 0):
 		for i in range(len(jumping_list_result_c)):
 			for j in range(len(jumping_list_result_c[i])):
@@ -264,25 +273,25 @@ def search_optimal(files, file_columns, file_paths, file_tags):
 				print(f"{result[j]:<12}", end="")
 			print("")
 
-	print("\n\nSliding window \n")
-	for i in range(len(file_tags)):
-		print(f"{file_tags[i]:<12}", end="")
-	print(f"{'N':<10}", end="")
-	print(f"{'window_size':<12}",end="")
-	print(f"{'soma diagonal':<12}",)
+	# print("\n\nSliding window \n")
+	# for i in range(len(file_tags)):
+	# 	print(f"{file_tags[i]:<12}", end="")
+	# print(f"{'N':<10}", end="")
+	# print(f"{'window_size':<12}",end="")
+	# print(f"{'soma diagonal':<12}",)
 
-	if(len(sliding_list_result_c) > 0):
-		for i in range(len(sliding_list_result_c)):
-			for j in range(len(sliding_list_result_c[i])):
-				result = sliding_list_result_c[i]
-				print(f"{result[j]:<12}", end="")
-			print("")
-	else:
-		for i in range((len(sliding_list_result_nc) - 1), ((len(sliding_list_result_nc) - 1)) - 2 , -1):
-			for j in range(len(sliding_list_result_nc[i])):
-				result = sliding_list_result_nc[i]
-				print(f"{result[j]:<12}", end="")
-			print("")
+	# if(len(sliding_list_result_c) > 0):
+	# 	for i in range(len(sliding_list_result_c)):
+	# 		for j in range(len(sliding_list_result_c[i])):
+	# 			result = sliding_list_result_c[i]
+	# 			print(f"{result[j]:<12}", end="")
+	# 		print("")
+	# else:
+	# 	for i in range((len(sliding_list_result_nc) - 1), ((len(sliding_list_result_nc) - 1)) - 2 , -1):
+	# 		for j in range(len(sliding_list_result_nc[i])):
+	# 			result = sliding_list_result_nc[i]
+	# 			print(f"{result[j]:<12}", end="")
+	# 		print("")
 
 def plot_SAC_AM_DM(sac_am_by_axes, sac_am_by_files, sac_dm_by_axes, sac_dm_by_files, file_tags, N):
 
@@ -300,7 +309,7 @@ def plot_SAC_AM_DM(sac_am_by_axes, sac_am_by_files, sac_dm_by_axes, sac_dm_by_fi
 
 	# plot_compare_windows(sac_am_by_axes, sac_dm_by_axes, file_tags, N)
 
-	# plot_heat_all_axes_windows(sac_am_by_files, sac_dm_by_files, file_tags, N, accelerometer=3)
+	plot_heat_all_axes_windows(sac_am_by_files, sac_dm_by_files, file_tags, N, accelerometer=3)
 
 	# plot_heat_axis_window(sac_am_by_axes, sac_dm_by_axes, file_tags, N, accelerometer=2)
 	
