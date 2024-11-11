@@ -114,7 +114,7 @@ def instantsClassification(instant, file_tags):
 				for j in range(len(instant)):
 					if(instant[j] > 0):
 						#2 healthy axes and another inconclusive
-						if(instant[j] == 4):
+						if(instant[j] == len(file_tags)):
 							return 0
 
 						return instant[j]
@@ -126,17 +126,17 @@ def instantsClassification(instant, file_tags):
 		if(len(failure) == 2 ):
 
 			# Different failures
-			if(instant[failure[0]] >= 1 and instant[failure[0]] < 4 and instant[failure[1]] >= 1 and instant[failure[1]] < 4 ):
+			if(instant[failure[0]] >= 1 and instant[failure[0]] < len(file_tags) and instant[failure[1]] >= 1 and instant[failure[1]] < len(file_tags) ):
 				return (len(file_tags))
 			
 			# 1 axis with failure and another inconclusive: classified as failure
-			if(instant[failure[0]] < 4):
+			if(instant[failure[0]] < len(file_tags)):
 				return (instant[failure[0]])
 			else:
 				return (instant[failure[1]])
 		
 		# 1 axis inclusive and another one healthy
-		if(len(failure) == 1 and instant[failure[0]] == 4):
+		if(len(failure) == 1 and instant[failure[0]] == len(file_tags)):
 			return (instant[healthy[0]])
 
 		# 1 axis with failure
@@ -175,10 +175,10 @@ def windowingClassification(axes_classification, window_size, file_tags):
 		#	checks if there is more than one value with the same and greater repetition
 		if(np.count_nonzero(counts == counts[np.argmax(counts)]) > 1):
 			window_classification.append(len(file_tags))
-			# print(f"window: {(window)} file: {i} classification: {len(file_tags)}")
+			# print(f"window: {(window)}  classification: {len(file_tags)}")
 		else:
 			window_classification.append(values[np.argmax(counts)])
-			# print(f"window: {(window)} file: {i} classification: {values[np.argmax(counts)]}")
+			# print(f"window: {(window)}  classification: {values[np.argmax(counts)]}")
 
 	return window_classification
 
@@ -209,7 +209,7 @@ def classification(sac_instants, average, deviation, window_size, file_tags):
 
 	#	checks if there is more than one value with the same and greater repetition
 	#	simple voting to classify the data
-	if(np.count_nonzero(counts == counts[np.argmax(counts)]) > 1 or values[np.argmax(counts)] == len(file_tags) + 1):
+	if(np.count_nonzero(counts == counts[np.argmax(counts)]) > 1 or values[np.argmax(counts)] == len(file_tags)):
 		# return len(file_tags)
 		return "inconclusivo"
 	else:
@@ -797,7 +797,7 @@ def plot_heat_jumpingWindowAllAxes(dataset, file_tags, title, window_size, N):
 	for i in range(len(file_tags)):
 		for j in range(len(labels)):
 			percentage = round(outputMatrixN[i][j], 2)
-			if(percentage > 0.2):
+			if(percentage > 0.45):
 				ax.text(j, i, percentage, ha="center", va="center", color="w")
 			else:
 				ax.text(j, i, percentage, ha="center", va="center", color="b")
@@ -857,7 +857,7 @@ def plot_heat_jumpingWindowAxis(dataset, file_tags, title, window_size, N):
 	for i in range(len(file_tags)):
 		for j in range(len(labels)):
 			percentage = round(outputMatrixN_x[i][j], 2)
-			if(percentage > 0.2):
+			if(percentage > 0.45):
 				ax_x.text(j, i, percentage, ha="center", va="center", color="w")
 			else:
 				ax_x.text(j, i, percentage, ha="center", va="center", color="b")
@@ -865,7 +865,7 @@ def plot_heat_jumpingWindowAxis(dataset, file_tags, title, window_size, N):
 	for i in range(len(file_tags)):
 		for j in range(len(labels)):
 			percentage = round(outputMatrixN_y[i][j], 2)
-			if(percentage > 0.2):
+			if(percentage > 0.45):
 				ax_y.text(j, i, percentage, ha="center", va="center", color="w")
 			else:
 				ax_y.text(j, i, percentage, ha="center", va="center", color="b")
@@ -911,7 +911,7 @@ def plot_heat_slidingWindowAxis(dataset, file_tags, title, window_size, N):
 	for i in range(len(file_tags)):
 		for j in range(len(labels)):
 			percentage = round(outputMatrixN_x[i][j], 2)
-			if(percentage > 0.2):
+			if(percentage > 0.45):
 				ax_x.text(j, i, percentage, ha="center", va="center", color="w")
 			else:
 				ax_x.text(j, i, percentage, ha="center", va="center", color="b")
@@ -919,7 +919,7 @@ def plot_heat_slidingWindowAxis(dataset, file_tags, title, window_size, N):
 	for i in range(len(file_tags)):
 		for j in range(len(labels)):
 			percentage = round(outputMatrixN_y[i][j], 2)
-			if(percentage > 0.2):
+			if(percentage > 0.45):
 				ax_y.text(j, i, percentage, ha="center", va="center", color="w")
 			else:
 				ax_y.text(j, i, percentage, ha="center", va="center", color="b")
@@ -927,7 +927,7 @@ def plot_heat_slidingWindowAxis(dataset, file_tags, title, window_size, N):
 	for i in range(len(file_tags)):
 		for j in range(len(labels)):
 			percentage = round(outputMatrixN_z[i][j], 2)
-			if(percentage > 0.2):
+			if(percentage > 0.45):
 				ax_z.text(j, i, percentage, ha="center", va="center", color="w")
 			else:
 				ax_z.text(j, i, percentage, ha="center", va="center", color="b")
