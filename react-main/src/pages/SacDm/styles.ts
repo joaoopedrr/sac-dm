@@ -33,3 +33,23 @@ export const Container = styled.div`
     }
   }
 `;
+
+export const ButtonContainer = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px; /* Espaço horizontal entre os botões */
+`;
+
+export const StyledButton = styled.button`
+  background-color: ${({ theme }) => theme.gray900};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.gray800}; /* Cinza mais escuro */
+  }
+`;

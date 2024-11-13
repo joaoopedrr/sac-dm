@@ -4,6 +4,28 @@ import { EmptyData } from "../../../components/EmptyData";
 import React, { useCallback, useEffect, useState } from "react";
 import { SacDmDefaultProps } from "../../../types";
 import sacDmDefault from "../../../app/services/sacdm_default";
+import styled from "styled-components";
+
+
+const ButtonContainer = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px; /* Espaço horizontal entre os botões */
+`;
+
+const StyledButton = styled.button`
+  background-color: ${({ theme }) => theme.gray800};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.gray900}; /* Cinza mais escuro */
+  }
+`;
 
 export const SacDmDevice = ({
   deviceId,
@@ -13,6 +35,8 @@ export const SacDmDevice = ({
   sacDm: SacDmProps[];
 }) => {
   const [sacDmMean, setsacDmMean] = useState<SacDmDefaultProps>();
+  const [selectedValue, setSelectedValue] = useState<string>('x'); // Estado para selecionar qual valor mostrar
+
 
   const loadSacDmDefault = useCallback(async () => {
     try {
@@ -33,6 +57,12 @@ export const SacDmDevice = ({
   if (!deviceId) {
     return null;
   }
+  // TODO fazer a leitura correta dos dados do status
+  // Função para verificar o status dos dados com base em sacDmMean.status
+  const checkDataStatus = () => {
+    //return sacDmMean?.status === "Ok" ? "Ok" : "Falha";
+    return "Ok"
+  };
 
   const optionsChart = {
     chart: {
@@ -65,36 +95,100 @@ export const SacDmDevice = ({
     },
   };
 
+  
+  // Variáveis que variam a amostragem na tabela
+  var valores = sacDm.map((item) => parseFloat(item.x_value.toFixed(8)));
+  var medias = Array(sacDm.length).fill(sacDmMean?.x_mean ?? 0);
+  var desvioPadraoSuperior = sacDmMean
+    ? Array(sacDm.length).fill(sacDmMean.x_mean + sacDmMean.x_standard_deviation)
+    : [];
+  var desvioPadraoInferior = sacDmMean
+    ? Array(sacDm.length).fill(sacDmMean.x_mean - sacDmMean.x_standard_deviation)
+    : [];
+
+    // Atualiza os arrays de acordo com o valor selecionado
+  const getDataForSelectedValue = () => {
+    switch (selectedValue) {
+      case 'x':
+        valores = sacDm.map((item) => parseFloat(item.x_value.toFixed(8)));
+        medias = Array(sacDm.length).fill(sacDmMean?.x_mean ?? 0);
+        desvioPadraoSuperior = sacDmMean
+          ? Array(sacDm.length).fill(sacDmMean.x_mean + sacDmMean.x_standard_deviation)
+          : [];
+        desvioPadraoInferior = sacDmMean
+          ? Array(sacDm.length).fill(sacDmMean.x_mean - sacDmMean.x_standard_deviation)
+          : [];
+          return ;
+      case 'y':
+        valores = sacDm.map((item) => parseFloat(item.y_value.toFixed(8)));
+        medias = Array(sacDm.length).fill(sacDmMean?.y_mean ?? 0);
+        desvioPadraoSuperior = sacDmMean
+          ? Array(sacDm.length).fill(sacDmMean.y_mean + sacDmMean.y_standard_deviation)
+          : [];
+        desvioPadraoInferior = sacDmMean
+          ? Array(sacDm.length).fill(sacDmMean.y_mean - sacDmMean.y_standard_deviation)
+          : [];
+          return ;
+      case 'z':
+        valores = sacDm.map((item) => parseFloat(item.z_value.toFixed(8)));
+        medias = Array(sacDm.length).fill(sacDmMean?.z_mean ?? 0);
+        desvioPadraoSuperior = sacDmMean
+          ? Array(sacDm.length).fill(sacDmMean.z_mean + sacDmMean.z_standard_deviation)
+          : [];
+        desvioPadraoInferior = sacDmMean
+          ? Array(sacDm.length).fill(sacDmMean.z_mean - sacDmMean.z_standard_deviation)
+          : [];
+        return ;
+      default:
+        return [];
+    }
+  };
+
+  getDataForSelectedValue();
+
   const seriesChart = [
+    
     {
       name: "Valor",
-      data: sacDm.map((item) => parseFloat(item.x_value.toFixed(8))
-    ),
+      data: valores,
     },
     {
       name: "Média",
-      data: Array(sacDm.length).fill(sacDmMean?.x_mean),
+      data: medias,
     },
     {
       name: "Desvio Padrão Superior",
-      data: sacDmMean
-        ? Array(sacDm.length).fill(
-            sacDmMean.x_mean + sacDmMean.x_standard_deviation
-          )
-        : [],
+      data: desvioPadraoSuperior,
     },
     {
       name: "Desvio Padrão Inferior",
-      data: sacDmMean
-        ? Array(sacDm.length).fill(
-            sacDmMean.x_mean - sacDmMean.x_standard_deviation
-          )
-        : [],
+      data: desvioPadraoInferior,
     },
   ];
 
   return (
     <div style={{ zIndex: 0, position: "relative" }}>
+      {/* Retângulo com status de dados */}
+      <div
+        style={{
+          //TODO também está ligado a utilização correta do status, mudar o valor do "Ok" abaixo caso não seja esse o passado pela variável
+          backgroundColor: checkDataStatus() === "Ok" ? "#4CAF50" : "#F44336",
+          color: "white",
+          padding: "10px",
+          textAlign: "center",
+          borderRadius: "5px",
+          marginBottom: "15px",
+        }}
+      >
+        {checkDataStatus()}
+      </div>
+
+      <ButtonContainer>
+        <StyledButton onClick={() => setSelectedValue("x")}>Eixo X</StyledButton>
+        <StyledButton onClick={() => setSelectedValue("y")}>Eixo Y</StyledButton>
+        <StyledButton onClick={() => setSelectedValue("z")}>Eixo Z</StyledButton>
+      </ButtonContainer>
+        
       <Chart
         options={optionsChart}
         series={seriesChart}
@@ -114,3 +208,4 @@ export default React.memo(SacDmDevice, (prevProps, nextProps) => {
     JSON.stringify(prevProps.sacDm) === JSON.stringify(nextProps.sacDm)
   );
 });
+

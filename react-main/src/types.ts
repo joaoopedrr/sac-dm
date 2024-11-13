@@ -22,12 +22,12 @@ export interface StatusProps {
 }
 
 export interface SacDmDefaultProps {
-  x_standard_deviation: number;
-  y_standard_deviation: number;
-  z_standard_deviation: number;
-  x_mean: number;
-  y_mean: number;
-  z_mean: number;
   id: number;
   vehicle_id: number;
+  x_mean: number;
+  x_standard_deviation: number;
+  y_mean: number;
+  y_standard_deviation: number;
+  z_mean: number;
+  z_standard_deviation: number;
 }
