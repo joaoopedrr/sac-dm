@@ -6,45 +6,31 @@ import { SacDmDefaultProps } from "../../../types";
 import sacDmDefault from "../../../app/services/sacdm_default";
 import styled from "styled-components";
 
-
-const ButtonContainer = styled.div`
-  margin-bottom: 20px;
-  display: flex;
-  gap: 10px; /* Espaço horizontal entre os botões */
+const Divider = styled.hr`
+  border: none;
+  border-top: 2px solid ${({ theme }) => theme.gray800};
+  margin: 20px 0;
 `;
 
-const StyledButton = styled.button`
-  background-color: ${({ theme }) => theme.gray800};
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.gray900}; /* Cinza mais escuro */
-  }
+const Section = styled.div`
+  margin-bottom: 40px;
 `;
 
 export const SacDmDevice = ({
   deviceId,
   sacDm,
 }: {
-  deviceId: number | null;
+  deviceId: number ;
   sacDm: SacDmProps[];
 }) => {
   const [sacDmMean, setsacDmMean] = useState<SacDmDefaultProps>();
-  const [selectedValue, setSelectedValue] = useState<string>('x'); // Estado para selecionar qual valor mostrar
-
 
   const loadSacDmDefault = useCallback(async () => {
     try {
-      const response = await sacDmDefault.getSacDmDefault(1);
-      console.log("Response: ", response);
+      const response = await sacDmDefault.getSacDmDefault(deviceId);
+      setsacDmMean(response);
       
       // TODO: Alterar para pegar o veículo selecionado
-      setsacDmMean(response);
     } catch (error) {
       console.error(error);
     }
@@ -57,6 +43,7 @@ export const SacDmDevice = ({
   if (!deviceId) {
     return null;
   }
+
   // TODO fazer a leitura correta dos dados do status
   // Função para verificar o status dos dados com base em sacDmMean.status
   const checkDataStatus = () => {
@@ -95,83 +82,39 @@ export const SacDmDevice = ({
     },
   };
 
-  
-  // Variáveis que variam a amostragem na tabela
-  var valores = sacDm.map((item) => parseFloat(item.x_value.toFixed(8)));
-  var medias = Array(sacDm.length).fill(sacDmMean?.x_mean ?? 0);
-  var desvioPadraoSuperior = sacDmMean
-    ? Array(sacDm.length).fill(sacDmMean.x_mean + sacDmMean.x_standard_deviation)
-    : [];
-  var desvioPadraoInferior = sacDmMean
-    ? Array(sacDm.length).fill(sacDmMean.x_mean - sacDmMean.x_standard_deviation)
-    : [];
+  const getChartData = (axis: "x" | "y" | "z") => {
+    const valores = sacDm.map((item) =>
+      parseFloat(item[`${axis}_value`].toFixed(8))
+    );
+    const medias = Array(sacDm.length).fill(sacDmMean?.[`${axis}_mean`] ?? 0);
+    const desvioPadraoSuperior = sacDmMean
+      ? Array(sacDm.length).fill(
+          sacDmMean[`${axis}_mean`] + sacDmMean[`${axis}_standard_deviation`]
+        )
+      : [];
+    const desvioPadraoInferior = sacDmMean
+      ? Array(sacDm.length).fill(
+          sacDmMean[`${axis}_mean`] - sacDmMean[`${axis}_standard_deviation`]
+        )
+      : [];
 
-    // Atualiza os arrays de acordo com o valor selecionado
-  const getDataForSelectedValue = () => {
-    switch (selectedValue) {
-      case 'x':
-        valores = sacDm.map((item) => parseFloat(item.x_value.toFixed(8)));
-        medias = Array(sacDm.length).fill(sacDmMean?.x_mean ?? 0);
-        desvioPadraoSuperior = sacDmMean
-          ? Array(sacDm.length).fill(sacDmMean.x_mean + sacDmMean.x_standard_deviation)
-          : [];
-        desvioPadraoInferior = sacDmMean
-          ? Array(sacDm.length).fill(sacDmMean.x_mean - sacDmMean.x_standard_deviation)
-          : [];
-          return ;
-      case 'y':
-        valores = sacDm.map((item) => parseFloat(item.y_value.toFixed(8)));
-        medias = Array(sacDm.length).fill(sacDmMean?.y_mean ?? 0);
-        desvioPadraoSuperior = sacDmMean
-          ? Array(sacDm.length).fill(sacDmMean.y_mean + sacDmMean.y_standard_deviation)
-          : [];
-        desvioPadraoInferior = sacDmMean
-          ? Array(sacDm.length).fill(sacDmMean.y_mean - sacDmMean.y_standard_deviation)
-          : [];
-          return ;
-      case 'z':
-        valores = sacDm.map((item) => parseFloat(item.z_value.toFixed(8)));
-        medias = Array(sacDm.length).fill(sacDmMean?.z_mean ?? 0);
-        desvioPadraoSuperior = sacDmMean
-          ? Array(sacDm.length).fill(sacDmMean.z_mean + sacDmMean.z_standard_deviation)
-          : [];
-        desvioPadraoInferior = sacDmMean
-          ? Array(sacDm.length).fill(sacDmMean.z_mean - sacDmMean.z_standard_deviation)
-          : [];
-        return ;
-      default:
-        return [];
-    }
+    return [
+      { name: "Valor", data: valores },
+      { name: "Média", data: medias },
+      { name: "Desvio Padrão Superior", data: desvioPadraoSuperior },
+      { name: "Desvio Padrão Inferior", data: desvioPadraoInferior },
+    ];
   };
 
-  getDataForSelectedValue();
-
-  const seriesChart = [
-    
-    {
-      name: "Valor",
-      data: valores,
-    },
-    {
-      name: "Média",
-      data: medias,
-    },
-    {
-      name: "Desvio Padrão Superior",
-      data: desvioPadraoSuperior,
-    },
-    {
-      name: "Desvio Padrão Inferior",
-      data: desvioPadraoInferior,
-    },
-  ];
+  const dataX = getChartData("x");
+  const dataY = getChartData("y");
+  const dataZ = getChartData("z");
 
   return (
     <div style={{ zIndex: 0, position: "relative" }}>
       {/* Retângulo com status de dados */}
       <div
         style={{
-          //TODO também está ligado a utilização correta do status, mudar o valor do "Ok" abaixo caso não seja esse o passado pela variável
           backgroundColor: checkDataStatus() === "Ok" ? "#4CAF50" : "#F44336",
           color: "white",
           padding: "10px",
@@ -183,18 +126,25 @@ export const SacDmDevice = ({
         {checkDataStatus()}
       </div>
 
-      <ButtonContainer>
-        <StyledButton onClick={() => setSelectedValue("x")}>Eixo X</StyledButton>
-        <StyledButton onClick={() => setSelectedValue("y")}>Eixo Y</StyledButton>
-        <StyledButton onClick={() => setSelectedValue("z")}>Eixo Z</StyledButton>
-      </ButtonContainer>
-        
-      <Chart
-        options={optionsChart}
-        series={seriesChart}
-        type="line"
-        height="350"
-      />
+      {/* Gráficos para os eixos X, Y e Z */}
+      <Section>
+        <h3>Eixo X</h3>
+        <Chart options={optionsChart} series={dataX} type="line" height="350" />
+        <Divider />
+      </Section>
+
+      <Section>
+        <h3>Eixo Y</h3>
+        <Chart options={optionsChart} series={dataY} type="line" height="350" />
+        <Divider />
+      </Section>
+
+      <Section>
+        <h3>Eixo Z</h3>
+        <Chart options={optionsChart} series={dataZ} type="line" height="350" />
+        <Divider />
+      </Section>
+
       {sacDm.length === 0 && (
         <EmptyData message="Nenhum dado encontrado para o dispositivo selecionado" />
       )}
@@ -208,4 +158,3 @@ export default React.memo(SacDmDevice, (prevProps, nextProps) => {
     JSON.stringify(prevProps.sacDm) === JSON.stringify(nextProps.sacDm)
   );
 });
-
