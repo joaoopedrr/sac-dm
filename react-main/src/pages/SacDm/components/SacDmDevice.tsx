@@ -4,17 +4,7 @@ import { EmptyData } from "../../../components/EmptyData";
 import React, { useCallback, useEffect, useState } from "react";
 import { SacDmDefaultProps } from "../../../types";
 import sacDmDefault from "../../../app/services/sacdm_default";
-import styled from "styled-components";
-
-const Divider = styled.hr`
-  border: none;
-  border-top: 2px solid ${({ theme }) => theme.gray800};
-  margin: 20px 0;
-`;
-
-const Section = styled.div`
-  margin-bottom: 40px;
-`;
+import {Divider, Section, containerStyle, statusBoxStyle, statusOkStyle, statusFailStyle,} from "../styles"
 
 export const SacDmDevice = ({
   deviceId,
@@ -30,7 +20,6 @@ export const SacDmDevice = ({
       const response = await sacDmDefault.getSacDmDefault(deviceId);
       setsacDmMean(response);
       
-      // TODO: Alterar para pegar o veículo selecionado
     } catch (error) {
       console.error(error);
     }
@@ -48,7 +37,7 @@ export const SacDmDevice = ({
   // Função para verificar o status dos dados com base em sacDmMean.status
   const checkDataStatus = () => {
     //return sacDmMean?.status === "Ok" ? "Ok" : "Falha";
-    return "Ok"
+    return "Falha"
   };
 
   const optionsChart = {
@@ -83,48 +72,42 @@ export const SacDmDevice = ({
   };
 
   const getChartData = (axis: "x" | "y" | "z") => {
-    const valores = sacDm.map((item) =>
+    const values = sacDm.map((item) =>
       parseFloat(item[`${axis}_value`].toFixed(8))
     );
-    const medias = Array(sacDm.length).fill(sacDmMean?.[`${axis}_mean`] ?? 0);
-    const desvioPadraoSuperior = sacDmMean
+    const means = Array(sacDm.length).fill(sacDmMean?.[`${axis}_mean`] ?? 0);
+    const upperStandardDeviation = sacDmMean
       ? Array(sacDm.length).fill(
           sacDmMean[`${axis}_mean`] + sacDmMean[`${axis}_standard_deviation`]
         )
       : [];
-    const desvioPadraoInferior = sacDmMean
+    const lowerStandardDeviation = sacDmMean
       ? Array(sacDm.length).fill(
           sacDmMean[`${axis}_mean`] - sacDmMean[`${axis}_standard_deviation`]
         )
       : [];
 
     return [
-      { name: "Valor", data: valores },
-      { name: "Média", data: medias },
-      { name: "Desvio Padrão Superior", data: desvioPadraoSuperior },
-      { name: "Desvio Padrão Inferior", data: desvioPadraoInferior },
+      { name: "Valor", data: values },
+      { name: "Média", data: means },
+      { name: "Desvio Padrão Superior", data: upperStandardDeviation },
+      { name: "Desvio Padrão Inferior", data: lowerStandardDeviation },
     ];
   };
 
   const dataX = getChartData("x");
   const dataY = getChartData("y");
   const dataZ = getChartData("z");
+  const status = checkDataStatus() === "Ok" ? statusOkStyle : statusFailStyle;
 
   return (
-    <div style={{ zIndex: 0, position: "relative" }}>
+    
+    <div style={containerStyle}>
       {/* Retângulo com status de dados */}
-      <div
-        style={{
-          backgroundColor: checkDataStatus() === "Ok" ? "#4CAF50" : "#F44336",
-          color: "white",
-          padding: "10px",
-          textAlign: "center",
-          borderRadius: "5px",
-          marginBottom: "15px",
-        }}
-      >
+      <div style={{ ...statusBoxStyle, ...status }}>
         {checkDataStatus()}
       </div>
+
 
       {/* Gráficos para os eixos X, Y e Z */}
       <Section>
