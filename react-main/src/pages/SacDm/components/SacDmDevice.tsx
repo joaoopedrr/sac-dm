@@ -4,23 +4,22 @@ import { EmptyData } from "../../../components/EmptyData";
 import React, { useCallback, useEffect, useState } from "react";
 import { SacDmDefaultProps } from "../../../types";
 import sacDmDefault from "../../../app/services/sacdm_default";
+import {Divider, Section, containerStyle, statusBoxStyle, statusOkStyle, statusFailStyle,} from "../styles"
 
 export const SacDmDevice = ({
   deviceId,
   sacDm,
 }: {
-  deviceId: number | null;
+  deviceId: number ;
   sacDm: SacDmProps[];
 }) => {
   const [sacDmMean, setsacDmMean] = useState<SacDmDefaultProps>();
 
   const loadSacDmDefault = useCallback(async () => {
     try {
-      const response = await sacDmDefault.getSacDmDefault(1);
-      console.log("Response: ", response);
-      
-      // TODO: Alterar para pegar o veículo selecionado
+      const response = await sacDmDefault.getSacDmDefault(deviceId);
       setsacDmMean(response);
+      
     } catch (error) {
       console.error(error);
     }
@@ -33,6 +32,13 @@ export const SacDmDevice = ({
   if (!deviceId) {
     return null;
   }
+
+  // TODO fazer a leitura correta dos dados do status
+  // Função para verificar o status dos dados com base em sacDmMean.status
+  const checkDataStatus = () => {
+    //return sacDmMean?.status === "Ok" ? "Ok" : "Falha";
+    return "Falha"
+  };
 
   const optionsChart = {
     chart: {
@@ -65,42 +71,63 @@ export const SacDmDevice = ({
     },
   };
 
-  const seriesChart = [
-    {
-      name: "Valor",
-      data: sacDm.map((item) => parseFloat(item.x_value.toFixed(8))
-    ),
-    },
-    {
-      name: "Média",
-      data: Array(sacDm.length).fill(sacDmMean?.x_mean),
-    },
-    {
-      name: "Desvio Padrão Superior",
-      data: sacDmMean
-        ? Array(sacDm.length).fill(
-            sacDmMean.x_mean + sacDmMean.x_standard_deviation
-          )
-        : [],
-    },
-    {
-      name: "Desvio Padrão Inferior",
-      data: sacDmMean
-        ? Array(sacDm.length).fill(
-            sacDmMean.x_mean - sacDmMean.x_standard_deviation
-          )
-        : [],
-    },
-  ];
+  const getChartData = (axis: "x" | "y" | "z") => {
+    const values = sacDm.map((item) =>
+      parseFloat(item[`${axis}_value`].toFixed(8))
+    );
+    const means = Array(sacDm.length).fill(sacDmMean?.[`${axis}_mean`] ?? 0);
+    const upperStandardDeviation = sacDmMean
+      ? Array(sacDm.length).fill(
+          sacDmMean[`${axis}_mean`] + sacDmMean[`${axis}_standard_deviation`]
+        )
+      : [];
+    const lowerStandardDeviation = sacDmMean
+      ? Array(sacDm.length).fill(
+          sacDmMean[`${axis}_mean`] - sacDmMean[`${axis}_standard_deviation`]
+        )
+      : [];
+
+    return [
+      { name: "Valor", data: values },
+      { name: "Média", data: means },
+      { name: "Desvio Padrão Superior", data: upperStandardDeviation },
+      { name: "Desvio Padrão Inferior", data: lowerStandardDeviation },
+    ];
+  };
+
+  const dataX = getChartData("x");
+  const dataY = getChartData("y");
+  const dataZ = getChartData("z");
+  const status = checkDataStatus() === "Ok" ? statusOkStyle : statusFailStyle;
 
   return (
-    <div style={{ zIndex: 0, position: "relative" }}>
-      <Chart
-        options={optionsChart}
-        series={seriesChart}
-        type="line"
-        height="350"
-      />
+    
+    <div style={containerStyle}>
+      {/* Retângulo com status de dados */}
+      <div style={{ ...statusBoxStyle, ...status }}>
+        {checkDataStatus()}
+      </div>
+
+
+      {/* Gráficos para os eixos X, Y e Z */}
+      <Section>
+        <h3>Eixo X</h3>
+        <Chart options={optionsChart} series={dataX} type="line" height="350" />
+        <Divider />
+      </Section>
+
+      <Section>
+        <h3>Eixo Y</h3>
+        <Chart options={optionsChart} series={dataY} type="line" height="350" />
+        <Divider />
+      </Section>
+
+      <Section>
+        <h3>Eixo Z</h3>
+        <Chart options={optionsChart} series={dataZ} type="line" height="350" />
+        <Divider />
+      </Section>
+
       {sacDm.length === 0 && (
         <EmptyData message="Nenhum dado encontrado para o dispositivo selecionado" />
       )}
