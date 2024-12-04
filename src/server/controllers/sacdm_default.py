@@ -9,9 +9,10 @@ from fastapi.responses import JSONResponse
 
 def get_sacdm_default(vehicle_id: Optional[int], db: Session) -> Optional[SACDMDefault]:
     query = db.query(SACDMDefault)
-    if vehicle_id is not None:
-        query = query.filter(SACDMDefault.vehicle_id == vehicle_id)
+    if vehicle_id is None:
+        raise ValueError("Null value was passed through id")
     
+    query = db.query(SACDMDefault).filter(SACDMDefault.vehicle_id == vehicle_id)
     query = query.order_by(SACDMDefault.id.desc())  # Descendente para pegar o mais recente
     return query.first()
 
